@@ -1,94 +1,105 @@
-function Quiz(questions) {
-    this.score = 0;
-    this.questions = questions;
-    this.CurrentQuestionIndex = 0;
-}
+// Define the quiz object
+const quiz = {
+  currentQuestionIndex: 0,
+  score: 3,
+  questions: [
+    {
+      question: "What is the capital of France?",
+      choices: ["Paris", "Rome", "Madrid", "texas", "London"],
+      correctChoiceIndex: 0,
+    },
+    {
+      question: "What is the largest planet in our solar system",
+      choices: ["Mars", "Venus", "Jupiter", "Earth", "Mercury"],
+      correctChoiceIndex: 0,
+    },
+    {
+      question: "What is the Capital City of Cameroon?",
+      choices: ["Bamenda", "Yaounde", "Buea", "Lagos", "Yaounde"],
+      correctChoiceIndex: 0,
+    },
+    
+   
+    // Additional questions
+    
+   
+  ],
 
-Quiz.prototype.guess = function(answer) {
-    if(this.getCurrentQuestion().isCorrectAnswer(answer)) {
-        this.score++;
+  displayQuestion: function () {
+    const questionElement = document.getElementById("question");
+    const choiceElements = document.querySelectorAll("#quiz p");
+    const progressElement = document.getElementById("progress");
+
+    const currentQuestion = this.questions[this.currentQuestionIndex];
+
+    questionElement.textContent = currentQuestion.question;
+
+    for (let i = 0; i < choiceElements.length; i++) {
+      choiceElements[i].textContent = currentQuestion.choices[i];
     }
-    this.CurrentQuestionIndex++;
-}
 
-Quiz.prototype.getCurrentQuestion = function() {
-    return this.questions[this.CurrentQuestionIndex];
-};
+    progressElement.textContent = `Question ${this.currentQuestionIndex + 1} of ${this.questions.length}`;
 
-Quiz.prototype.hasEnded = function()  {
-    return this.CurrentQuestionIndex >= this.questions.length;
-};
-function Question(text, choices, answer) {
-    this.text = text;
-    this.choices = choices;
-    this.answer = answer;
-}
+    this.displayEndButton();
+  },
 
-Question.prototype.isCorrectAnswer = function (choice) { 
-
-    return this.answer === choice;
-};
-var QuizUI = {
-    displayNext: function() {
-        if (Quiz.hasEnded()) {
-            this.displayScore();
-        } else {
-            this.displayQuestion();
-            this.displayChoices();
-            this.displayProgress();
-        }
-    },
-    displayQuestion:  function() {
-        this.populateIdwithHTML("question", quiz.getCurrentQuestion().text);
-    },
-    displayChoices: function() {
-        var choices = quiz.getCurrentQuestion().choices;
-
-    for(var i = 0; i < choices.length; i++) {
-        this.populateIdwithHTML("choice" + i, choices[i]);
-        this.guessHandler("guess" + i, choices[i]);
+  displayEndButton: function () {
+    const endButton = document.getElementById("end-btn");
+    if (endButton) {
+      if (this.currentQuestionIndex === this.questions.length - 1) {
+        endButton.style.display = "inline-block";
+      } else {
+        endButton.style.display = "none";
       }
-    },
-    displayScore: function() {
-        var gameOverHTML = "<h1>Game Over</h1>";
-        gameOverHTML += "<h2> Your score is: " + quiz.score + " /5 </h2>";
-        this.populateIdwithHTML("quiz", gameOverHTML);
-    },
+    }
+  },
 
-    populateIdwithHTML: function(id, text) {
-        var element = document.getElementById(id);
-        element.innerHTML = text;
-    },
-    guessHandler: function(id, guess)  {
-        var button = document.getElementById(id);
-        button.onclick = function() {
-            quiz.guess(guess);
-            QuizUI.displayNext();
-        }
-    },
+  displayNext: function () {
+    const guessElements = document.querySelectorAll(".btn--default");
+    const feedbackElement = document.getElementById("score");
 
-    displayProgress: function() {
-        var getCurrentQuestionNumber = quiz.CurrentQuestionIndex + 1;
-        this.populateIdwithHTML("progress", "Question" + getCurrentQuestionNumber + " of " + quiz. questions.length);
+    const selectedChoice = parseInt(this.getAttribute("data-index"));
+
+    if (selectedChoice === quiz.questions[quiz.currentQuestionIndex].correctChoiceIndex) {
+      quiz.score++;
+      feedbackElement.textContent = "Correct!";
+    } else {
+      feedbackElement.textContent = "Wrong!";
+      feedbackElement.textContent = "Correct!";
     }
 
+    quiz.currentQuestionIndex++;
+
+    if (quiz.currentQuestionIndex < quiz.questions.length) {
+      quiz.displayQuestion();
+    } else {
+      quiz.displayScore();
+    }
+  },
+
+  displayScore: function () {
+    const quizElement = document.getElementById("quiz");
+    quizElement.innerHTML = `<h2>Your Score: ${this.score} / ${this.questions.length}</h2>`;
+  },
+
+  setupEventListeners: function () {
+    const guessButtons = document.querySelectorAll(".btn--default");
+    const endButton = document.getElementById("end-btn");
+
+    for (let i = 0; i < guessButtons.length; i++) {
+      guessButtons[i].addEventListener("click", this.displayNext);
+    }
+
+    const self = this;
+    endButton.addEventListener("click", function () {
+      self.displayScore();
+    });
+  },
+
+  init: function () {
+    this.setupEventListeners();
+    this.displayQuestion();
+  },
 };
 
-//Create Questions
-var questions = [
-    new Question("which planet has the most moons?",["jupiter", "Uranus", "Mars", "Saturn"],
-     "Saturn"),
-     new Question("What country won the most world cups?", ["Brazil", "Argentina", "England", "France"], "Brazil"),
-     
-     new Question("What is the capital city of Cameroon?", ["Bamenda", "Douala", "Yaounde", "lagos"], "Yaounde"),
-
-     new Question("In which country was football first recognized?", ["England", "Brazil", "France", "USA"], "England"),
-
-     new Question("Where was the 2022 world cup played?", ["France", "Brazil", "Qatar", "Saudi Arabia"], "Qatar"),
-];
-
-//create Quiz
-var quiz = new Quiz(questions);
-
-//display Quiz
-QuizUI.displayNext();
+quiz.init();
